@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34607.119
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A0A4C061-7B0E-45EE-81CD-6BC8174823E4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "poc-lambda-net", "src\Lambda\poc-lambda-net.csproj", "{2FF926D2-DAC7-4AAE-AA28-E8739746A3D6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BBC6554C-7D6F-469A-91EF-12791FAF8A31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBC6554C-7D6F-469A-91EF-12791FAF8A31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBC6554C-7D6F-469A-91EF-12791FAF8A31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBC6554C-7D6F-469A-91EF-12791FAF8A31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FF926D2-DAC7-4AAE-AA28-E8739746A3D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FF926D2-DAC7-4AAE-AA28-E8739746A3D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FF926D2-DAC7-4AAE-AA28-E8739746A3D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FF926D2-DAC7-4AAE-AA28-E8739746A3D6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {428AA00E-15A4-48FC-8FF5-5622AC94B507}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2FF926D2-DAC7-4AAE-AA28-E8739746A3D6} = {A0A4C061-7B0E-45EE-81CD-6BC8174823E4}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,259 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "The AWS CloudFormation template for this Serverless application",
+  "Resources": {
+    "ServerlessDeploymentBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "ServerlessDeploymentBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "ServerlessDeploymentBucket"
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "s3:*",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":s3:::",
+                      {
+                        "Ref": "ServerlessDeploymentBucket"
+                      },
+                      "/*"
+                    ]
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":s3:::",
+                      {
+                        "Ref": "ServerlessDeploymentBucket"
+                      }
+                    ]
+                  ]
+                }
+              ],
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": false
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "MyFunctionLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/poc-lambda-net-local-myFunction"
+      }
+    },
+    "IamRoleLambdaExecution": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": {
+              "Fn::Join": [
+                "-",
+                [
+                  "poc-lambda-net",
+                  "local",
+                  "lambda"
+                ]
+              ]
+            },
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:CreateLogGroup",
+                    "logs:TagResource"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/poc-lambda-net-local*:*"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/poc-lambda-net-local*:*:*"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "sqs:ReceiveMessage",
+                    "sqs:DeleteMessage",
+                    "sqs:GetQueueAttributes"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "Queue",
+                        "Arn"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "Path": "/",
+        "RoleName": {
+          "Fn::Join": [
+            "-",
+            [
+              "poc-lambda-net",
+              "local",
+              {
+                "Ref": "AWS::Region"
+              },
+              "lambdaRole"
+            ]
+          ]
+        }
+      }
+    },
+    "MyFunctionLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/poc-lambda-net/local/1712680601034-2024-04-09T16:36:41.034Z/./src/Lambda/poc-lambda-net.zip"
+        },
+        "Handler": "poc-lambda-net::Lambda.Function::FunctionHandler",
+        "Runtime": "dotnet6",
+        "FunctionName": "poc-lambda-net-local-myFunction",
+        "MemorySize": 256,
+        "Timeout": 900,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "MyFunctionLogGroup"
+      ]
+    },
+    "MyFunctionLambdaVersionOKhnlCAGOBywBYVcnfEF70F6RTH8KCX3iKamjXA": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "MyFunctionLambdaFunction"
+        },
+        "CodeSha256": "dldC1IJs05E7GOQmZeaFdNxHgc3Yc8xJUDItAKr5asg="
+      }
+    },
+    "MyFunctionEventSourceMappingSQSQueue": {
+      "Type": "AWS::Lambda::EventSourceMapping",
+      "DependsOn": [
+        "IamRoleLambdaExecution"
+      ],
+      "Properties": {
+        "BatchSize": 10,
+        "EventSourceArn": {
+          "Fn::GetAtt": [
+            "Queue",
+            "Arn"
+          ]
+        },
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "MyFunctionLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Enabled": true
+      }
+    },
+    "Queue": {
+      "Type": "AWS::SQS::Queue",
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "QueueName": "poc-lambda-net-queue",
+        "ReceiveMessageWaitTimeSeconds": 20
+      }
+    }
+  },
+  "Outputs": {
+    "ServerlessDeploymentBucketName": {
+      "Value": {
+        "Ref": "ServerlessDeploymentBucket"
+      },
+      "Export": {
+        "Name": "sls-poc-lambda-net-local-ServerlessDeploymentBucketName"
+      }
+    },
+    "MyFunctionLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "MyFunctionLambdaVersionOKhnlCAGOBywBYVcnfEF70F6RTH8KCX3iKamjXA"
+      },
+      "Export": {
+        "Name": "sls-poc-lambda-net-local-MyFunctionLambdaFunctionQualifiedArn"
+      }
+    }
+  }
+}
